@@ -1,0 +1,22 @@
+{
+  "name": "safefetch",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@types/bun": "latest",
+    "tsup": "^8.0.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "next": "^14.1.0",
+    "query-string": "^8.2.0",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
+  },
+  "scripts": {
+    "pub": "bun changeset publish"
+  }
+}
