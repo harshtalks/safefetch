@@ -3,7 +3,7 @@ import {
   useSearchParams as useNextSearchParams,
 } from "next/navigation.js";
 import queryString from "query-string";
-import { ZodSchema, input, object, output } from "zod";
+import { ZodSchema, input, object, output, string } from "zod";
 import { convertURLSearchParamsToObject } from "./utils.js";
 
 export type RouteConfig<
@@ -20,6 +20,8 @@ export type RouteConfig<
 const routeBuilder = () => {
   const routes: Record<string, RouteConfig<any, any>> = {};
 
+  const urlSchema = string().min(1).url();
+
   const buildRoute = <
     TParams extends ZodSchema,
     TSearchParams extends ZodSchema
@@ -27,7 +29,15 @@ const routeBuilder = () => {
     name: string,
     fn: (params: input<TParams>) => string,
     paramSchema: TParams = {} as TParams,
-    searchSchema: TSearchParams = {} as TSearchParams
+    searchSchema: TSearchParams = {} as TSearchParams,
+    urlOptions:
+      | {
+          internal: true;
+        }
+      | {
+          internal: false;
+          baseUrl: string;
+        }
   ): RouteConfig<TParams, TSearchParams> => {
     // check if the route already exists
     if (routes[name]) {
@@ -35,12 +45,17 @@ const routeBuilder = () => {
     }
 
     const route: RouteConfig<TParams, TSearchParams> = (params, options) => {
-      const baseRoute = fn(params);
+      let route = fn(params);
+
+      if (!urlOptions.internal) {
+        const baseUrl = new URL(urlSchema.parse(urlOptions.baseUrl));
+        route = new URL(route, baseUrl).toString();
+      }
 
       const searchQuery =
         options?.search && queryString.stringify(options.search);
 
-      return [baseRoute, searchQuery ? `?${searchQuery}` : ``].join(``);
+      return [route, searchQuery ? `?${searchQuery}` : ``].join(``);
     };
 
     routes[name] = route;
@@ -114,8 +129,9 @@ export const createRoute = <
   fn,
   paramsSchema,
   searchParamsSchema,
+  options,
 }: CreateRouteConfig<TParams, TSearchParams>) => {
-  return buildRoute(name, fn, paramsSchema, searchParamsSchema);
+  return buildRoute(name, fn, paramsSchema, searchParamsSchema, options);
 };
 
 export type CreateRouteConfig<
@@ -126,4 +142,12 @@ export type CreateRouteConfig<
   fn: (params: input<UrlParams>) => string;
   paramsSchema: UrlParams;
   searchParamsSchema?: SearchParams;
+  options:
+    | {
+        internal: true;
+      }
+    | {
+        internal: false;
+        baseUrl: string;
+      };
 };
