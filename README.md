@@ -1,15 +1,9 @@
-# safefetch
+# safe-fetchttp
 
-To install dependencies:
+It consists of a wrapper fetcher factory function that you can use to create fetcher functions for your need.
 
-```bash
-bun install
+let's understand with the example
+
+```tsx
+
 ```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.26. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

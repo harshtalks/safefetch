@@ -1,6 +1,10 @@
 {
-  "name": "safefetch",
-  "module": "index.ts",
+  "name": "safe-fetchttp",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "version": "0.0.1",
+  "description": "type safe route wrapper and wrapper fetcher for nextjs app directory.",
   "type": "module",
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
@@ -17,6 +21,23 @@
     "zod": "^3.22.4"
   },
   "scripts": {
-    "pub": "bun changeset publish"
+    "pub": "bun changeset publish",
+    "tsup": "tsup src/index.ts --format cjs,esm --dts"
+  },
+  "author": "Harsh Pareek",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshtalks/safefetch.git"
+  },
+  "keywords": [
+    "zod",
+    "fetch",
+    "typescript",
+    "fetcher",
+    "routes"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }
