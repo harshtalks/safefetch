@@ -3,7 +3,7 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "type safe route wrapper and wrapper fetcher for nextjs app directory.",
   "type": "module",
   "devDependencies": {
@@ -39,5 +39,8 @@
   ],
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "files": [
+    "src/*.ts"
+  ]
 }
