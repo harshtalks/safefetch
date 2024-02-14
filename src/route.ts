@@ -3,7 +3,7 @@ import {
   useSearchParams as useNextSearchParams,
 } from "next/navigation.js";
 import queryString from "query-string";
-import { ZodSchema, input, object, output, string } from "zod";
+import { ZodSchema, boolean, input, object, output, string } from "zod";
 import { convertURLSearchParamsToObject } from "./utils.js";
 
 export type RouteConfig<
@@ -121,6 +121,31 @@ const routeBuilder = () => {
 
 const buildRoute = routeBuilder();
 
+/**
+ * @name createRoute
+ * @description
+ * It creates a route with the given name, function, paramsSchema, searchParamsSchema and options. here options can be internal or external. If it is internal, it will not append the base url to the route. If it is external, it will append the base url to the route which you will have to provide. It returns a function which takes params and options and returns the route with the search params. It also has useParams and useSearchParams functions which returns the params and search params of the route.
+ *
+ * @returns {RouteConfig}
+ *
+ * @example
+ *  export const WorkspaceRoute = createRoute({
+ *    fn: ({ workspaceId }) => `/workspace/${workspaceId}`,
+ *     name: "WorkspaceRoute",
+ *    paramsSchema: object({
+ *      workspaceId: string(),
+ *     }),
+ *     options: { internal: true },
+ *   searchParamsSchema: object({
+ *       withOwner: boolean(),
+ *     }),
+ *  });
+ *
+ * WorkspaceRoute({ workspaceId: "123" }, { search: { withOwner: true } });
+ * result => /workspace/123?withOwner=true
+ *
+ */
+
 export const createRoute = <
   TParams extends ZodSchema,
   TSearchParams extends ZodSchema
@@ -138,10 +163,45 @@ export type CreateRouteConfig<
   UrlParams extends ZodSchema,
   SearchParams extends ZodSchema
 > = {
+  // give jsdoc
+
+  /**
+   * @name name
+   * @description name of the route. It should be unique as internally this key is used to store the route, Will throw an error if the route with the same name already exists.
+   */
   name: string;
+
+  /**
+   * @name fn
+   * @param params
+   * @returns {string}
+   * @description function which takes params and returns the route. Once you give the paramSchema, it will automatically infer the type of the params.
+   */
   fn: (params: input<UrlParams>) => string;
+
+  /**
+   * @name paramsSchema
+   * @type {ZodSchema}
+   *
+   * @description paramsSchema is the schema of the params which the route takes. It is used to infer the type of the params. It is also used to validate the params. If the params are not valid, it will throw an error.
+   */
   paramsSchema: UrlParams;
+
+  /**
+   * @name searchParamsSchema
+   * @type {ZodSchema}
+   *
+   * @description searchParamsSchema is the schema of the search params which the route takes. It is used to infer the type of the search params. It is also used to validate the search params. If the search params are not valid, it will throw an error. It is an optional field
+   *
+   * @optional
+   */
   searchParamsSchema?: SearchParams;
+
+  /**
+   * @name options
+   * @type {Object}
+   * @description options is an object which can be internal or external. If it is internal, it will not append the base url to the route. If it is external, it will append the base url to the route which you will have to provide. baseUrl needs to follow basic url format otherwise it will throw an error.
+   */
   options:
     | {
         internal: true;
