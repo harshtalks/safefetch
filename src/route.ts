@@ -150,10 +150,45 @@ export const createRoute = <
   TParams extends ZodSchema,
   TSearchParams extends ZodSchema
 >({
+  /**
+   * @name name
+   * @description name of the route. It should be unique as internally this key is used to store the route, Will throw an error if the route with the same name already exists.
+   */
   name,
+
+  /**
+   * @name fn
+   * @param params
+   * @returns {string}
+   * @description function which takes params and returns the route. Once you give the paramSchema, it will automatically infer the type of the params.
+   */
   fn,
+
+  /**
+   * @name searchParamsSchema
+   * @type {ZodSchema}
+   *
+   * @description searchParamsSchema is the schema of the search params which the route takes. It is used to infer the type of the search params. It is also used to validate the search params. If the search params are not valid, it will throw an error. It is an optional field
+   *
+   * @optional
+   */
   paramsSchema,
+
+  /**
+   * @name searchParamsSchema
+   * @type {ZodSchema}
+   *
+   * @description searchParamsSchema is the schema of the search params which the route takes. It is used to infer the type of the search params. It is also used to validate the search params. If the search params are not valid, it will throw an error. It is an optional field
+   *
+   * @optional
+   */
   searchParamsSchema,
+
+  /**
+   * @name options
+   * @type {Object}
+   * @description options is an object which can be internal or external. If it is internal, it will not append the base url to the route. If it is external, it will append the base url to the route which you will have to provide. baseUrl needs to follow basic url format otherwise it will throw an error.
+   */
   options,
 }: CreateRouteConfig<TParams, TSearchParams>) => {
   return buildRoute(name, fn, paramsSchema, searchParamsSchema, options);

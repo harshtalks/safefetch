@@ -4,7 +4,9 @@ It consists of a wrapper fetcher factory function that you can use to create fet
 
 let's understand with the example.
 
-Suppose we have a nextjs app where we have a dynamic page for a workspace details that takes workspaceId as a dynamic param
+Suppose we have a nextjs app where we have a dynamic page for a workspace details that takes workspaceId as a dynamic param with the help of ZOD library.
+
+Important: You need to have zod installed for this.
 
 Traditionally how you would do that is basically:
 
@@ -34,4 +36,36 @@ export const WorkspaceRoute = createRoute({
 <Link href={WorkspaceRoute({ workspaceId: "123" })}>
   <Button>Workspace</Button>
 </Link>;
+```
+
+Package also serves the custom fetcher function generator to generate small async fetcher functions. Example:
+
+```ts
+const getPost = createEndPoint({
+  HttpMethod: "POST",
+  path: createRoute({
+    name: "getPost",
+    fn: (params) => `/posts/${params.id}`,
+    paramsSchema: object({
+      id: string(),
+    }),
+    options: {
+      internal: false,
+      baseUrl: "https://jsonplaceholder.typicode.com", // this is the example url
+    },
+  }),
+  params: object({
+    id: string(),
+  }),
+  response: object({
+    userId: string(),
+    id: string(),
+    title: string(),
+    body: string(),
+  }),
+});
+
+const posts = getPost({
+  params: { id: "post_whdkh28e7" },
+});
 ```
