@@ -1,4 +1,12 @@
-import { ZodSchema, input, object, output, string } from "zod";
+import {
+  ZodError,
+  ZodSchema,
+  input,
+  number,
+  object,
+  output,
+  string,
+} from "zod";
 import { RouteConfig, createRoute } from "./route.js";
 
 type HTTPMethods = HTTPMethodsWithBody | HTTPMethodsWithoutBody;
@@ -30,7 +38,6 @@ export type EndPoint<
 > = {
   HttpMethod: HTTPMethods;
   path: RouteConfig<Params, SearchParams>;
-  params: Params;
   body?: RequestBody;
   response: Response;
 };
@@ -54,12 +61,10 @@ export const createEndPoint = <
     body,
     init,
   }: EndPointConfig<Params, SearchParams>) => {
-    const parsedBody = endPoint.body ? endPoint.body.parse(body) : undefined;
-
     try {
       const response = await fetch(endPoint.path(params), {
         method: endPoint.HttpMethod,
-        ...(isMethodWithBody(endPoint.HttpMethod)
+        ...(isMethodWithBody(endPoint.HttpMethod) && endPoint.body
           ? { body: JSON.stringify(endPoint.body?.parse(body)) }
           : {}),
         ...init,
@@ -76,7 +81,8 @@ export const createEndPoint = <
 
       return parsedResponseData;
     } catch (err) {
-      throw new Error("Server error");
+      if (err instanceof ZodError) throw new Error(err.message);
+      else throw new Error("Request failed");
     }
   };
 };

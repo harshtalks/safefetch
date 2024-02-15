@@ -41,31 +41,34 @@ export const WorkspaceRoute = createRoute({
 Package also serves the custom fetcher function generator to generate small async fetcher functions. Example:
 
 ```ts
-const getPost = createEndPoint({
-  HttpMethod: "POST",
+export const getPosts = createEndPoint({
+  HttpMethod: "GET",
   path: createRoute({
-    name: "getPost",
     fn: (params) => `/posts/${params.id}`,
     paramsSchema: object({
       id: string(),
     }),
+    name: "getPosts",
     options: {
       internal: false,
-      baseUrl: "https://jsonplaceholder.typicode.com", // this is the example url
+      baseUrl: "https://jsonplaceholder.typicode.com",
     },
   }),
-  params: object({
-    id: string(),
-  }),
   response: object({
-    userId: string(),
     id: string(),
     title: string(),
     body: string(),
   }),
 });
 
-const posts = getPost({
-  params: { id: "post_whdkh28e7" },
+const posts = getPosts({
+  params: {
+    id: `1`,
+  },
+  init: {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  },
 });
 ```
