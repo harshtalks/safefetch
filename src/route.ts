@@ -3,7 +3,7 @@ import {
   useSearchParams as useNextSearchParams,
 } from "next/navigation.js";
 import queryString from "query-string";
-import { ZodSchema, boolean, input, object, output, string } from "zod";
+import { ZodSchema, enum as enum_, input, object, output, string } from "zod";
 import { convertURLSearchParamsToObject } from "./utils.js";
 
 export type RouteConfig<
@@ -97,7 +97,7 @@ const routeBuilder = () => {
     route.params = undefined as output<TParams>;
     route.searchParams = undefined as output<TSearchParams>;
 
-    Object.defineProperty(routeBuilder, "params", {
+    Object.defineProperty(route, "params", {
       get() {
         throw new Error(
           "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
@@ -105,7 +105,7 @@ const routeBuilder = () => {
       },
     });
 
-    Object.defineProperty(routeBuilder, "searchParams", {
+    Object.defineProperty(route, "searchParams", {
       get() {
         throw new Error(
           "Routes.[route].searchParams is only for type usage, not runtime. Use it like `typeof Routes.[routes].searchParams`"
