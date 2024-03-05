@@ -129,20 +129,17 @@ export type EndPointConfig<
   init?: Omit<RequestInit, "body" | "method">;
 } & (HTTPMethod extends HTTPMethodsWithBody
   ? { body: input<Body> }
-  : { body: never });
+  : {
+      body?: never;
+    });
 
 // example
 
-const x = createEndPoint({
-  HttpMethod: "POST",
-  path: createRoute({
-    fn: () => "/",
-    name: "/",
-    options: {
-      internal: true,
-    },
-    paramsSchema: object({}),
-  }),
-  body: object({ name: string() }),
-  response: object({ id: number() }),
+const x = createRoute({
+  fn: () => "/",
+  name: "/",
+  options: {
+    internal: true,
+  },
+  paramsSchema: object({}),
 });
