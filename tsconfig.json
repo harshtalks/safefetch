@@ -4,7 +4,6 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "target": "es2022",
-    "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
@@ -14,8 +13,8 @@
     "noUncheckedIndexedAccess": true,
 
     /* If transpiling with TypeScript: */
-    "moduleResolution": "NodeNext",
-    "module": "NodeNext",
+    "moduleResolution": "Node",
+    "module": "ESNext",
     "outDir": "dist",
     "sourceMap": true,
 
@@ -23,6 +22,9 @@
     "declaration": true,
 
     /* If your code runs in the DOM: */
-    "lib": ["es2022", "dom", "dom.iterable"]
+    "lib": ["es2022", "dom", "dom.iterable"],
+
+    /* JSX Options */
+    "jsx": "react"
   }
 }

@@ -1,10 +1,13 @@
 import {
   useParams as useNextParams,
   useSearchParams as useNextSearchParams,
-} from "next/navigation.js";
+} from "next/navigation";
 import queryString from "query-string";
 import { ZodSchema, enum as enum_, input, object, output, string } from "zod";
-import { convertURLSearchParamsToObject } from "./utils.js";
+import { convertURLSearchParamsToObject } from "./utils";
+import Link from "next/link";
+import { ComponentProps } from "react";
+import React from "react";
 
 export type RouteConfig<
   TParams extends ZodSchema,
@@ -15,6 +18,12 @@ export type RouteConfig<
   useSearchParams: () => output<TSearchParams>;
   params: output<TParams>;
   searchParams: output<TSearchParams>;
+  Link: (
+    props: ComponentProps<typeof Link> & {
+      params: input<TParams>;
+      search?: input<TSearchParams>;
+    }
+  ) => JSX.Element;
 };
 
 const routeBuilder = () => {
@@ -96,6 +105,8 @@ const routeBuilder = () => {
 
     route.params = undefined as output<TParams>;
     route.searchParams = undefined as output<TSearchParams>;
+
+    route.Link = ({ children, ...props }) => <Link {...props}>{children}</Link>;
 
     Object.defineProperty(route, "params", {
       get() {

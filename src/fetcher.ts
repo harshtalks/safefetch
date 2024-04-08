@@ -9,11 +9,11 @@ import {
 } from "zod";
 import { RouteConfig, createRoute } from "./route.js";
 
-type HTTPMethods = HTTPMethodsWithBody | HTTPMethodsWithoutBody;
+export type HttpMethods = HttpMethodsWithBody | HttpMethodsWithoutBody;
 
-type HTTPMethodsWithBody = "POST" | "PUT" | "PATCH";
+export type HttpMethodsWithBody = "POST" | "PUT" | "PATCH";
 
-type HTTPMethodsWithoutBody =
+export type HttpMethodsWithoutBody =
   | "GET"
   | "DELETE"
   | "OPTIONS"
@@ -30,19 +30,19 @@ type HTTPMethodsWithoutBody =
 export type EndPoint<
   Params extends ZodSchema,
   RequestBody extends ZodSchema,
-  Response extends ZodSchema,
   SearchParams extends ZodSchema,
-  Methods extends HTTPMethods = HTTPMethods
+  Response extends ZodSchema,
+  Methods extends HttpMethods = HttpMethods
 > = {
   path: RouteConfig<Params, SearchParams>;
   response: Response;
-} & (Methods extends HTTPMethodsWithBody
+} & (Methods extends HttpMethodsWithBody
   ? {
-      HttpMethod: HTTPMethodsWithBody;
+      httpMethod: HttpMethodsWithBody;
       body: RequestBody;
     }
   : {
-      HttpMethod: HTTPMethodsWithoutBody;
+      httpMethod: HttpMethodsWithoutBody;
     });
 
 /**
@@ -55,51 +55,76 @@ export type EndPoint<
 export const isHttpMethodWithBody = <
   Params extends ZodSchema,
   RequestBody extends ZodSchema,
-  Response extends ZodSchema,
-  SearchParams extends ZodSchema
+  SearchParams extends ZodSchema,
+  Response extends ZodSchema
 >(
-  endPoint: EndPoint<Params, RequestBody, Response, SearchParams>
+  endPoint: EndPoint<Params, RequestBody, SearchParams, Response>
 ): endPoint is EndPoint<
   Params,
   RequestBody,
-  Response,
   SearchParams,
-  HTTPMethodsWithBody
+  Response,
+  HttpMethodsWithBody
 > => {
   return (
-    endPoint.HttpMethod === "POST" ||
-    endPoint.HttpMethod === "PUT" ||
-    endPoint.HttpMethod === "PATCH"
+    endPoint.httpMethod === "POST" ||
+    endPoint.httpMethod === "PUT" ||
+    endPoint.httpMethod === "PATCH"
   );
 };
+
+/**
+ * @param endPoint
+ * @description creates an endpoint for the fetcher
+ * @returns a function that takes in the request config and the parameters for the endpoint
+ */
 
 export const createEndPoint = <
   Params extends ZodSchema,
   Body extends ZodSchema,
-  Response extends ZodSchema,
-  SearchParams extends ZodSchema
+  SearchParams extends ZodSchema,
+  Response extends ZodSchema
 >(
-  endPoint: EndPoint<Params, Body, Response, SearchParams>
+  endPoint: EndPoint<Params, Body, SearchParams, Response>,
+  {
+    customHandler,
+  }: {
+    customHandler?: (
+      config: EndPointConfig<Params, Body, typeof endPoint.httpMethod>
+    ) => Promise<output<Response>>;
+  }
 ) => {
   return async ({
-    init,
+    requestConfig,
     params,
     body,
-  }: EndPointConfig<Params, Body, typeof endPoint.HttpMethod>) => {
+  }: EndPointConfig<Params, Body, typeof endPoint.httpMethod>) => {
     try {
+      if (customHandler) {
+        return customHandler({ requestConfig, params, body });
+      }
+
       const response = await fetch(endPoint.path(params), {
-        method: endPoint.HttpMethod,
+        method: endPoint.httpMethod,
         ...(isHttpMethodWithBody(endPoint) && body
           ? { body: JSON.stringify(endPoint.body.parse(body)) }
           : {}),
-        ...init,
+        ...requestConfig,
       });
 
-      if (!response.ok) {
-        throw new Error("Request failed: " + response.statusText);
+      // account for the other errors as well, i
+      if (response.status >= 400 && response.status < 499) {
+        throw new Error(
+          "Request failed with client error: " + response.statusText
+        );
+      } else if (response.status >= 500 && response.status < 599) {
+        throw new Error(
+          "Request failed with server error: " + response.statusText
+        );
       }
 
       const responseData = await response.json();
+
       const parsedResponseData = endPoint.response.parse(
         responseData
       ) as output<Response>;
@@ -107,7 +132,11 @@ export const createEndPoint = <
       return parsedResponseData;
     } catch (err) {
       if (err instanceof ZodError) throw new Error(err.message);
-      else throw new Error("Request failed");
+      else if (err instanceof Error) {
+        throw new Error(err.message);
+      } else {
+        throw new Error("An unknown error occured. Please try again later.");
+      }
     }
   };
 };
@@ -115,7 +144,7 @@ export const createEndPoint = <
 export type EndPointConfig<
   Params extends ZodSchema,
   Body extends ZodSchema,
-  HTTPMethod extends HTTPMethods = HTTPMethods
+  HttpMethod extends HttpMethods = HttpMethods
 > = {
   /**
    * @name params
@@ -123,23 +152,12 @@ export type EndPointConfig<
    */
   params: input<Params>;
   /**
-   * @name init
+   * @name requestConfig
    * The request init object for the fetch call
    */
-  init?: Omit<RequestInit, "body" | "method">;
-} & (HTTPMethod extends HTTPMethodsWithBody
+  requestConfig?: Omit<RequestInit, "body" | "method">;
+} & (HttpMethod extends HttpMethodsWithBody
   ? { body: input<Body> }
   : {
       body?: never;
     });
-
-// example
-
-const x = createRoute({
-  fn: () => "/",
-  name: "/",
-  options: {
-    internal: true,
-  },
-  paramsSchema: object({}),
-});
