@@ -38,6 +38,14 @@ export const WorkspaceRoute = createRoute({
 </Link>;
 ```
 
+You can also use declarative style link tags (inspired from react router):
+
+```tsx
+<WorkspaceRoute.Link params = {{workspaceId:"123"}}>
+  <Button>Workspace</Button>
+</WorkspaceRoute.Link>
+```
+
 Package also serves the custom fetcher function generator to generate small async fetcher functions. Example:
 
 ```ts
