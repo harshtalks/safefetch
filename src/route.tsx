@@ -19,9 +19,9 @@ export type RouteConfig<
   params: output<TParams>;
   searchParams: output<TSearchParams>;
   Link: (
-    props: ComponentProps<typeof Link> & {
+    props: Omit<ComponentProps<typeof Link>, "href"> & {
       params: input<TParams>;
-      search?: input<TSearchParams>;
+      searchParams?: input<TSearchParams>;
     }
   ) => JSX.Element;
 };
@@ -106,7 +106,23 @@ const routeBuilder = () => {
     route.params = undefined as output<TParams>;
     route.searchParams = undefined as output<TSearchParams>;
 
-    route.Link = ({ children, ...props }) => <Link {...props}>{children}</Link>;
+    route.Link = ({ children, params, searchParams, ...props }) => {
+      let route = fn(params);
+
+      if (!urlOptions.internal) {
+        const baseUrl = new URL(urlSchema.parse(urlOptions.baseUrl));
+        route = new URL(route, baseUrl).toString();
+      }
+
+      const searchQuery = searchParams && queryString.stringify(searchParams);
+
+      const href = [route, searchQuery ? `?${searchQuery}` : ``].join(``);
+      return (
+        <Link {...props} href={href}>
+          {children}
+        </Link>
+      );
+    };
 
     Object.defineProperty(route, "params", {
       get() {
@@ -257,3 +273,14 @@ export type CreateRouteConfig<
         baseUrl: string;
       };
 };
+
+// example
+
+const x = createRoute({
+  fn: () => "/",
+  paramsSchema: object({}),
+  name: "home",
+  options: {
+    internal: true,
+  },
+});
